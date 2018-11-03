@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     UsersDatabaseHelper usersDatabaseHelper;
     RecyclerView recyclerView;
     CardAdapter adapter;
-    Toolbar toolbar;
     static List<User> users = new ArrayList<>();
 
     @Override
@@ -48,10 +47,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 

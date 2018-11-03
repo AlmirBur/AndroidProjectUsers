@@ -19,7 +19,6 @@ import java.util.Objects;
 
 public class DetailsActivity extends AppCompatActivity {
     UsersDatabaseHelper usersDatabaseHelper;
-    CardAdapter adapter;
     User user;
     List<User> friends;
     Toolbar toolbar;
@@ -75,21 +74,20 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     public void showFriend(int id) {
-        for (User user : friends) {
-            if (user.getId() == id) {
-                if (user.isActive()) {
-                    Intent intent = new Intent(this, DetailsActivity.class);
-                    intent.putExtra("id", id);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), user.getName() + " неактивный",
-                            Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
+        User friend = usersDatabaseHelper.getUser(id);
+        if (friend == null) {
+            Toast.makeText(getApplicationContext(), "Такого профиля нет",
+                    Toast.LENGTH_SHORT).show();
+            return;
         }
-        Toast.makeText(getApplicationContext(), "Такого профиля нет",
-                Toast.LENGTH_SHORT).show();
+        if (friend.isActive()) {
+            Intent intent = new Intent(this, DetailsActivity.class);
+            intent.putExtra("id", id);
+            startActivity(intent);
+        } else {
+            Toast.makeText(getApplicationContext(), friend.getName() + " неактивный",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     void showEmptyView() {
@@ -107,7 +105,7 @@ public class DetailsActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setTitle(getString(R.string.details));
         RecyclerView recyclerView = findViewById(R.id.list_recycler_friends);
         friends = getFriends();
-        adapter = new CardAdapter();
+        CardAdapter adapter = new CardAdapter();
         adapter.setUsers(friends);
         recyclerView.setAdapter(adapter);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);

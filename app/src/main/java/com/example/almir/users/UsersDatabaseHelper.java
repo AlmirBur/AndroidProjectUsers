@@ -244,7 +244,7 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
         return users;
     }
 
-    boolean databaseIsEmpty() {//improve method
+    boolean databaseIsEmpty() {
         try (Cursor cursor = getReadableDatabase().query(UsersDatabaseHelper.TABLE_NAME,
                 new String[] {"_ID"},
                 null, null, null, null, null)) {

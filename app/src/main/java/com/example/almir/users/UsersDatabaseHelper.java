@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 public class UsersDatabaseHelper extends SQLiteOpenHelper {
-    private static String strUrl = "https://www.dropbox.com/s/s8g63b149tnbg8x/users.json?dl=1";
+    private static final String strUrl = "https://www.dropbox.com/s/s8g63b149tnbg8x/users.json?dl=1";
     static final String DB_NAME = "users";
     static final String TABLE_NAME = "USERS";
     static final int DB_VERSION = 1;

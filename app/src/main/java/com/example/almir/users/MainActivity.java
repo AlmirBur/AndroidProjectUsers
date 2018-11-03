@@ -15,7 +15,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
     UsersDatabaseHelper usersDatabaseHelper;
@@ -60,13 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         usersDatabaseHelper = new UsersDatabaseHelper(getApplicationContext());
         if (usersDatabaseHelper.databaseIsEmpty()) {
-            UpdateDatabaseTask updateDatabaseTask = new UpdateDatabaseTask();
-            updateDatabaseTask.execute();
-            try {
-                updateDatabaseTask.get();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            new UpdateDatabaseTask().execute();
         } else {
             users = usersDatabaseHelper.getUsers();
             adapter.setUsers(users);
@@ -115,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void updated() {
-        users = usersDatabaseHelper.getUsers();
+        adapter.setUsers(users = usersDatabaseHelper.getUsers());
         adapter.notifyDataSetChanged();
         findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
         recyclerView.setVisibility(View.VISIBLE);

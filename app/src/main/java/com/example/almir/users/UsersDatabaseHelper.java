@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -131,41 +130,39 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
-            InputStream inputStream = urlConnection.getInputStream();
             StringBuilder sb = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
             }
-            reader.close();
-            inputStream.close();
 
             //second part
             JSONArray jsonUsers = new JSONArray(sb.toString());
-            SQLiteDatabase database = getWritableDatabase();
-            deleteTable(database);
-            for (int i = 0; i < jsonUsers.length(); i++) {
-                JSONObject jsonUser = (JSONObject) jsonUsers.get(i);
-                if (jsonUser.getInt("id") < 0) continue;//id должно быть не меньше чем ноль
-                insertUser(database,
-                        jsonUser.getInt("id"),
-                        jsonUser.getInt("age"),
-                        jsonUser.getBoolean("isActive"),
-                        jsonUser.getString("name"),
-                        jsonUser.getString("company"),
-                        jsonUser.getString("email"),
-                        jsonUser.getString("address"),
-                        jsonUser.getString("phone"),
-                        jsonUser.getString("about"),
-                        getRegistered(jsonUser.getString("registered")),
-                        jsonUser.getDouble("latitude"),
-                        jsonUser.getDouble("longitude"),
-                        jsonUser.getString("eyeColor"),
-                        jsonUser.getString("favoriteFruit"),
-                        arrayToString(jsonUser.getJSONArray("friends")));
+            try (SQLiteDatabase database = getWritableDatabase()) {
+                deleteTable(database);
+                for (int i = 0; i < jsonUsers.length(); i++) {
+                    JSONObject jsonUser = (JSONObject) jsonUsers.get(i);
+                    if (jsonUser.getInt("id") < 0) continue;//id должно быть не меньше чем ноль
+                    insertUser(database,
+                            jsonUser.getInt("id"),
+                            jsonUser.getInt("age"),
+                            jsonUser.getBoolean("isActive"),
+                            jsonUser.getString("name"),
+                            jsonUser.getString("company"),
+                            jsonUser.getString("email"),
+                            jsonUser.getString("address"),
+                            jsonUser.getString("phone"),
+                            jsonUser.getString("about"),
+                            getRegistered(jsonUser.getString("registered")),
+                            jsonUser.getDouble("latitude"),
+                            jsonUser.getDouble("longitude"),
+                            jsonUser.getString("eyeColor"),
+                            jsonUser.getString("favoriteFruit"),
+                            arrayToString(jsonUser.getJSONArray("friends")));
+                }
             }
-            database.close();
         } catch (Exception ignored) {  }
     }
 
@@ -221,58 +218,38 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
 
     User getUser(int id) {
         User user = null;
-        try {
-            SQLiteDatabase database = getReadableDatabase();
-            Cursor cursor = database.query(UsersDatabaseHelper.TABLE_NAME,
-                    UsersDatabaseHelper.STANDARD_QUERY, "ID = ?",
-                    new String[] {Integer.toString(id)}, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    user = getUser(cursor);
-                }
-                cursor.close();
+        try (Cursor cursor = getReadableDatabase().query(UsersDatabaseHelper.TABLE_NAME,
+                UsersDatabaseHelper.STANDARD_QUERY, "ID = ?",
+                new String[] {Integer.toString(id)}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                user = getUser(cursor);
             }
-            database.close();
-        } catch (SQLiteException ignored) {  }
+        }
         return user;
     }
 
     List<User> getUsers() {
         List<User> users = new ArrayList<>();
-        try {
-            SQLiteDatabase database = getReadableDatabase();
-            Cursor cursor = database.query(UsersDatabaseHelper.TABLE_NAME,
-                    UsersDatabaseHelper.STANDARD_QUERY,
-                    null, null, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    do {
-                        users.add(getUser(cursor));
-                    } while (cursor.moveToNext());
-                }
-                cursor.close();
+        try (Cursor cursor = getReadableDatabase().query(UsersDatabaseHelper.TABLE_NAME,
+                UsersDatabaseHelper.STANDARD_QUERY,
+                null, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    users.add(getUser(cursor));
+                } while (cursor.moveToNext());
             }
-            database.close();
         } catch (Exception e) {
             return new ArrayList<>();
         }
         return users;
     }
 
-    boolean databaseIsEmpty() {
-        try {
-            SQLiteDatabase database = getReadableDatabase();
-            Cursor cursor = database.query(UsersDatabaseHelper.TABLE_NAME,
-                    UsersDatabaseHelper.STANDARD_QUERY,
-                    null, null, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    cursor.close();
-                    return false;
-                }
-            }
-            database.close();
-        } catch (Exception ignored) {  }
+    boolean databaseIsEmpty() {//improve method
+        try (Cursor cursor = getReadableDatabase().query(UsersDatabaseHelper.TABLE_NAME,
+                new String[] {"_ID"},
+                null, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) return false;
+        }
         return true;
     }
 }

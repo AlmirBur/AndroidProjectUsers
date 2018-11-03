@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.view.menu.ActionMenuItemView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -110,18 +109,17 @@ public class MainActivity extends AppCompatActivity {
 
     void updateUsers() {
         recyclerView.setVisibility(View.INVISIBLE);
-        ActionMenuItemView item = findViewById(R.id.update);
-        item.setEnabled(false);
-        UpdateDatabaseTask task = new UpdateDatabaseTask();
-        task.execute();
+        findViewById(R.id.update).setEnabled(false);
+        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        new UpdateDatabaseTask().execute();
     }
 
     void updated() {
         users = usersDatabaseHelper.getUsers();
         adapter.notifyDataSetChanged();
-        ActionMenuItemView item = findViewById(R.id.update);
-        item.setEnabled(true);
+        findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
         recyclerView.setVisibility(View.VISIBLE);
+        findViewById(R.id.update).setEnabled(true);
         Toast.makeText(getApplicationContext(), "Обновлено",
                 Toast.LENGTH_SHORT).show();
     }

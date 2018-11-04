@@ -123,23 +123,26 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
         database.insert(TABLE_NAME, null, userValues);
     }
 
-    void updateDatabase() {
+    private String getJsonString() {
+        StringBuilder sb = new StringBuilder();
         try {
-            //firs part
             URL url = new URL(strUrl);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
-            StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     sb.append(line);
                 }
             }
+        } catch (Exception ignored) {}
+        return sb.toString();
+    }
 
-            //second part
-            JSONArray jsonUsers = new JSONArray(sb.toString());
+    private void insertUsers(String strJson) {
+        try {
+            JSONArray jsonUsers = new JSONArray(strJson);
             try (SQLiteDatabase database = getWritableDatabase()) {
                 deleteTable(database);
                 for (int i = 0; i < jsonUsers.length(); i++) {
@@ -155,7 +158,7 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
                             jsonUser.getString("address"),
                             jsonUser.getString("phone"),
                             jsonUser.getString("about"),
-                            getRegistered(jsonUser.getString("registered")),
+                            convertFormat(jsonUser.getString("registered")),
                             jsonUser.getDouble("latitude"),
                             jsonUser.getDouble("longitude"),
                             jsonUser.getString("eyeColor"),
@@ -163,10 +166,14 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
                             arrayToString(jsonUser.getJSONArray("friends")));
                 }
             }
-        } catch (Exception ignored) {  }
+        } catch (Exception ignored) {}
     }
 
-    private String getRegistered(String registered) {
+    void updateDatabase() {
+        insertUsers(getJsonString());
+    }
+
+    private String convertFormat(String registered) {
         if (!registered.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2} [-+]?\\d{2}:\\d{2}"))
             throw new IllegalArgumentException("Неправильный формат");
         String[] parts = registered.split("[- T:]");

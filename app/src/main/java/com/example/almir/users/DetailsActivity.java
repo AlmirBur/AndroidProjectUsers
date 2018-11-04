@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -101,7 +102,7 @@ public class DetailsActivity extends AppCompatActivity {
             showEmptyView();
             return;
         }
-
+        ((ScrollView) findViewById(R.id.scroll_view)).smoothScrollTo(0, 0);
         Objects.requireNonNull(getSupportActionBar()).setTitle(getString(R.string.details));
         RecyclerView recyclerView = findViewById(R.id.list_recycler_friends);
         friends = getFriends();

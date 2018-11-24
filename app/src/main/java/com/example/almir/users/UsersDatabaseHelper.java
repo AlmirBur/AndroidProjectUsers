@@ -123,53 +123,47 @@ public class UsersDatabaseHelper extends SQLiteOpenHelper {
         database.insert(TABLE_NAME, null, userValues);
     }
 
-    private String getJsonString() {
+    private String getJsonString() throws Exception {
         StringBuilder sb = new StringBuilder();
-        try {
-            URL url = new URL(strUrl);
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
+        URL url = new URL(strUrl);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setRequestMethod("GET");
+        urlConnection.connect();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
             }
-        } catch (Exception ignored) {}
+        }
         return sb.toString();
     }
 
-    private void insertUsers(String strJson) {
-        try {
-            JSONArray jsonUsers = new JSONArray(strJson);
-            try (SQLiteDatabase database = getWritableDatabase()) {
-                deleteTable(database);
-                for (int i = 0; i < jsonUsers.length(); i++) {
-                    JSONObject jsonUser = (JSONObject) jsonUsers.get(i);
-                    if (jsonUser.getInt("id") < 0) continue;//id должно быть не меньше чем ноль
-                    insertUser(database,
-                            jsonUser.getInt("id"),
-                            jsonUser.getInt("age"),
-                            jsonUser.getBoolean("isActive"),
-                            jsonUser.getString("name"),
-                            jsonUser.getString("company"),
-                            jsonUser.getString("email"),
-                            jsonUser.getString("address"),
-                            jsonUser.getString("phone"),
-                            jsonUser.getString("about"),
-                            convertFormat(jsonUser.getString("registered")),
-                            jsonUser.getDouble("latitude"),
-                            jsonUser.getDouble("longitude"),
-                            jsonUser.getString("eyeColor"),
-                            jsonUser.getString("favoriteFruit"),
-                            arrayToString(jsonUser.getJSONArray("friends")));
-                }
-            }
-        } catch (Exception ignored) {}
+    private void insertUsers(String strJson) throws Exception {
+        JSONArray jsonUsers = new JSONArray(strJson);
+        try (SQLiteDatabase database = getWritableDatabase()) {
+            deleteTable(database);
+            for (int i = 0; i < jsonUsers.length(); i++) {
+                JSONObject jsonUser = (JSONObject) jsonUsers.get(i);
+                if (jsonUser.getInt("id") < 0) continue;//id должно быть не меньше чем ноль
+                insertUser(database,
+                        jsonUser.getInt("id"),
+                        jsonUser.getInt("age"),
+                        jsonUser.getBoolean("isActive"),
+                        jsonUser.getString("name"),
+                        jsonUser.getString("company"),
+                        jsonUser.getString("email"),
+                        jsonUser.getString("address"),
+                        jsonUser.getString("phone"),
+                        jsonUser.getString("about"),
+                        convertFormat(jsonUser.getString("registered")),
+                        jsonUser.getDouble("latitude"),
+                        jsonUser.getDouble("longitude"),
+                        jsonUser.getString("eyeColor"),
+                        jsonUser.getString("favoriteFruit"),
+                        arrayToString(jsonUser.getJSONArray("friends"))); } }
     }
 
-    void updateDatabase() {
+    void updateDatabase() throws Exception {
         insertUsers(getJsonString());
     }
 

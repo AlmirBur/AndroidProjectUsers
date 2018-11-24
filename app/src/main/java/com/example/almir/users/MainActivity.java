@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.menu.ActionMenuItemView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -103,26 +105,36 @@ public class MainActivity extends AppCompatActivity {
         new UpdateDatabaseTask().execute();
     }
 
-    void updated() {
-        adapter.setUsers(users = usersDatabaseHelper.getUsers());
-        adapter.notifyDataSetChanged();
+    void updated(boolean wasUpdated) {
+        if (wasUpdated) {
+            adapter.setUsers(users = usersDatabaseHelper.getUsers());
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(), "Обновлено",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Не обновлено",
+                    Toast.LENGTH_SHORT).show();
+        }
         findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
         recyclerView.setVisibility(View.VISIBLE);
-        findViewById(R.id.update).setEnabled(true);
-        Toast.makeText(getApplicationContext(), "Обновлено",
-                Toast.LENGTH_SHORT).show();
+        ActionMenuItemView btnUpdate = findViewById(R.id.update);
+        if (btnUpdate != null) btnUpdate.setEnabled(true);
     }
 
     @SuppressLint("StaticFieldLeak")//подсказка IDE
-    class UpdateDatabaseTask extends AsyncTask<Void, Void, Void> {
+    class UpdateDatabaseTask extends AsyncTask<Void, Void, Boolean> {
         @Override
-        protected Void doInBackground(Void... v) {
-            usersDatabaseHelper.updateDatabase();
-            return null;
+        protected Boolean doInBackground(Void... v) {
+            try {
+                usersDatabaseHelper.updateDatabase();
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
         }
         @Override
-        protected void onPostExecute(Void v) {
-            updated();
+        protected void onPostExecute(Boolean wasUpdated) {
+            updated(wasUpdated);
         }
     }
 }
